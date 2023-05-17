@@ -9,7 +9,7 @@ rn = np.random.default_rng()
 img_test = skimage.io.imread(\
     'https://uploads6.wikiart.org/images/ilya-mashkov/landscape-1914.jpg',as_gray=True)
 
-def poisson_point_pattern(n,dims,side=1,normalize=True):
+def poisson_point_pattern(n,dims,side=1):
     """
     Generate Poisson point pattern of square particles with
     given side length.
@@ -19,15 +19,12 @@ def poisson_point_pattern(n,dims,side=1,normalize=True):
         n : int
             Number of particles
 
-        dims : tuple of ints
+        dims : tuple of ints_
             Dimensions of the image
 
         side : int
             Length of side of each particle
         
-        normalize : bool
-            Whether to normalize the image
-
     Returns
 
         img : numpy.ndarray
@@ -39,8 +36,6 @@ def poisson_point_pattern(n,dims,side=1,normalize=True):
         tmp = np.zeros(dims)
         tmp[positions[0,i],positions[1,i]] = 1
         img = img + skimage.morphology.dilation(tmp,skimage.morphology.square(side))
-    if normalize:
-        img = img/img.sum()
     return img
 
 
