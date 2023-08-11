@@ -11,8 +11,9 @@ img_test = skimage.io.imread(\
 
 def poisson_point_pattern(n,dims,side=1):
     """
-    Generate Poisson point pattern of square particles with
-    given side length.
+    Generate Poisson point pattern of normalized square particles with
+    given side length. Particles are placed randomly with periodic
+    boundary conditions.
 
     Arguments
 
@@ -31,11 +32,11 @@ def poisson_point_pattern(n,dims,side=1):
             2D numpy array of floats
     """
     img = np.zeros(dims,dtype=float)
-    positions = rn.integers(low=np.zeros([2,n]),high=[[dims[0]]*n,[dims[1]]*n])
+    # intensity = 1/side**2 # Normalize particle intensity
+    positions = rn.integers(low=np.zeros([n,2]),high=[[dims[0],dims[1]]]*n)
     for i in range(n):
-        tmp = np.zeros(dims)
-        tmp[positions[0,i],positions[1,i]] = 1
-        img = img + skimage.morphology.dilation(tmp,skimage.morphology.square(side))
+        img[:side,:side] = img[:side,:side] + 1
+        img = np.roll(img,shift=positions[i],axis=(0,1))
     return img
 
 
@@ -54,6 +55,7 @@ def volume_fraction_variance(image,scale,every):
 
         every : int
             Increment for scaling of the window
+            TODO: increment logarithmically! (more points for smaller windows)
     """
     dimensions = np.shape(image)
     mean = np.mean(image)
@@ -67,3 +69,15 @@ def volume_fraction_variance(image,scale,every):
         conv = scipy.fft.irfft2(fft_image*fft_window)/window.sum()
         vol_var[i] = np.var(conv)
     return window_sizes,vol_var
+
+def reproduce_fig2_1707_01524():
+    """ Reproduce fig 2 in 1707.01524 (square particles only). """
+    dims = (3000,3000)
+    num_pixels = np.prod(dims)
+    side_particles = np.array([3,30])
+    vols_particles = side_particles**2
+    phis = [0.02]
+    for i,phi in enumerate(phis):
+        nums_particles = np.array(phi*num_pixels/vols_particles,dtype=int)
+        imgs = [poisson_point_pattern(nums_particles[i],dims,side) for i,side in enumerate(side_particles)]
+    return imgs
