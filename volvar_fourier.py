@@ -3,7 +3,6 @@ import numpy as np
 import scipy.fft
 import skimage.morphology
 import skimage.io
-import matplotlib.pyplot as pl
 rn = np.random.default_rng()
 
 img_test = skimage.io.imread(\
@@ -32,7 +31,6 @@ def poisson_point_pattern(n,dims,side=1):
             2D numpy array of floats
     """
     img = np.zeros(dims,dtype=float)
-    # intensity = 1/side**2 # Normalize particle intensity
     positions = rn.integers(low=np.zeros([n,2]),high=[[dims[0],dims[1]]]*n)
     for i in range(n):
         img[:side,:side] = img[:side,:side] + 1
@@ -40,7 +38,7 @@ def poisson_point_pattern(n,dims,side=1):
     return img
 
 
-def volume_fraction_variance(image,scale,every):
+def volume_fraction_variance(image,max_scale,every):
     """
     Return the volume fraction variance of grayscale image.
 
@@ -49,7 +47,7 @@ def volume_fraction_variance(image,scale,every):
         image : numpy.ndarray
             2D numpy array of floats in [0,1]
 
-        scale : float
+        max_scale : float
             Scale of maximum window size expressed as fraction
             of the smaller dimension of the image
 
@@ -59,7 +57,7 @@ def volume_fraction_variance(image,scale,every):
     """
     dimensions = np.shape(image)
     mean = np.mean(image)
-    window_sizes = np.arange(1,int(scale*min(dimensions)),every)
+    window_sizes = np.arange(1,int(max_scale*min(dimensions)),every)
     fft_dims   = [scipy.fft.next_fast_len(d) for d in dimensions]
     fft_image  = scipy.fft.rfft2(image,fft_dims)
     vol_var = np.zeros(len(window_sizes))
