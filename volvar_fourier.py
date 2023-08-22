@@ -8,7 +8,7 @@ rn = np.random.default_rng()
 img_test = skimage.io.imread(\
     'https://uploads6.wikiart.org/images/ilya-mashkov/landscape-1914.jpg',as_gray=True)
 
-def poisson_point_pattern(n,dims,side=1):
+def poisson_point_pattern(num_particles,dims,side=1):
     """
     Generate Poisson point pattern of normalized square particles with
     given side length. Particles are placed randomly with periodic
@@ -31,14 +31,14 @@ def poisson_point_pattern(n,dims,side=1):
             2D numpy array of floats
     """
     img = np.zeros(dims,dtype=float)
-    positions = rn.integers(low=np.zeros([n,2]),high=[[dims[0],dims[1]]]*n)
-    for i in range(n):
+    positions = rn.integers(low=np.zeros([num_particles,2]),high=[[dims[0],dims[1]]]*num_particles)
+    for i in range(num_particles):
         img[:side,:side] = img[:side,:side] + 1
         img = np.roll(img,shift=positions[i],axis=(0,1))
     return img
 
 
-def volume_fraction_variance(image,max_scale,every):
+def volume_fraction_variance(image,max_scale,every=1,window_sizes=None):
     """
     Return the volume fraction variance of grayscale image.
 
@@ -53,11 +53,16 @@ def volume_fraction_variance(image,max_scale,every):
 
         every : int
             Increment for scaling of the window
-            TODO: increment logarithmically! (more points for smaller windows)
+            Overridden if window_sizes != None
+        
+        window_sizes : np.array of ints
+            Window side lengths for which to calculate the volume
+            fraction variance. Overrides the value of 'every' if
+            specified.
     """
     dimensions = np.shape(image)
-    mean = np.mean(image)
-    window_sizes = np.arange(1,int(max_scale*min(dimensions)),every)
+    if not window_sizes:
+        window_sizes = np.arange(1,int(max_scale*min(dimensions)),every)
     fft_dims   = [scipy.fft.next_fast_len(d) for d in dimensions]
     fft_image  = scipy.fft.rfft2(image,fft_dims)
     vol_var = np.zeros(len(window_sizes))
